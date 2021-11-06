@@ -16,20 +16,22 @@
 
 package com.codelab.basics
 
+import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -48,6 +50,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,126 +64,109 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BasicsCodelabTheme {
-                MyApp()
+                Conversation(messages = SampleData.conversationSample)
             }
         }
     }
 }
 
-@Composable
-private fun MyApp() {
-    var shouldShowOnboarding by rememberSaveable { mutableStateOf(true) }
-
-    if (shouldShowOnboarding) {
-        OnboardingScreen(onContinueClicked = { shouldShowOnboarding = false })
-    } else {
-        Greetings()
-    }
-}
+data class Message(val author: String, val body: String)
 
 @Composable
-private fun OnboardingScreen(onContinueClicked: () -> Unit) {
-    Surface {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Welcome to the Basics Codelab!")
-            Button(
-                modifier = Modifier.padding(vertical = 24.dp),
-                onClick = onContinueClicked
-            ) {
-                Text("Continue")
-            }
-        }
-    }
-}
-
-@Composable
-private fun Greetings(names: List<String> = List(1000) { "$it" } ) {
-    LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-        items(items = names) { name ->
-            Greeting(name = name)
-        }
-    }
-}
-
-@Composable
-private fun Greeting(name: String) {
-    Card(
-        backgroundColor = MaterialTheme.colors.primary,
-        modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-    ) {
-        CardContent(name)
-    }
-}
-
-@Composable
-private fun CardContent(name: String) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Row(
-        modifier = Modifier
-            .padding(12.dp)
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            )
-    ) {
-        Column(
+fun MessageCard(msg: Message) {
+    Row(modifier = Modifier.padding(all = 8.dp)) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_background),
+            contentDescription = "Contact profile picture",
             modifier = Modifier
-                .weight(1f)
-                .padding(12.dp)
-        ) {
-            Text(text = "Hello, ")
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, MaterialTheme.colors.secondary, CircleShape)
+        )
+        
+        Spacer(modifier = Modifier.width(8.dp))
+
+        var isExpanded by remember {
+            mutableStateOf(false)
+        }
+
+        // 멀티라인 확장을 이스케이프 문자기준으로 했을 때
+        // TODO 문제는 1 줄이 길어서 2개 라인으로 보일 때가 처리되지 않음
+        val multiLineStateForm: () -> String = {
+            if (isExpanded) {
+                msg.body
+            }
+            else {
+                val msgLines = msg.body.lines()
+                if (msgLines.size > 1) {
+                    msgLines[0] + "\n..."
+                }
+                else {
+                    msgLines[0]
+                }
+            }
+        }
+
+        val surfaceColor: Color by animateColorAsState(
+            targetValue = if (isExpanded) MaterialTheme.colors.primary
+            else MaterialTheme.colors.surface,
+        )
+
+        Column {
             Text(
-                text = name,
-                style = MaterialTheme.typography.h4.copy(
-                    fontWeight = FontWeight.ExtraBold
-                )
+                text = msg.author,
+                color = MaterialTheme.colors.secondaryVariant,
+                style = MaterialTheme.typography.subtitle2
             )
-            if (expanded) {
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                elevation = 1.dp,
+                color = surfaceColor,
+                modifier = Modifier.clickable { isExpanded = !isExpanded }
+                    .animateContentSize().padding(1.dp)
+            ) {
                 Text(
-                    text = ("Composem ipsum color sit lazy, " +
-                        "padding theme elit, sed do bouncy. ").repeat(4),
+                    text = multiLineStateForm(),
+                    modifier = Modifier.padding(all = 4.dp),
+                    style = MaterialTheme.typography.body2
                 )
             }
         }
-        IconButton(onClick = { expanded = !expanded }) {
-            Icon(
-                imageVector = if (expanded) Filled.ExpandLess else Filled.ExpandMore,
-                contentDescription = if (expanded) {
-                    stringResource(R.string.show_less)
-                } else {
-                    stringResource(R.string.show_more)
-                }
+    }
+}
 
-            )
+@Composable
+fun Conversation(messages: List<Message>) {
+    LazyColumn {
+        items(messages) { message ->
+            MessageCard(msg = message)
         }
     }
 }
 
-@Preview(
-    showBackground = true,
-    widthDp = 320,
-    uiMode = UI_MODE_NIGHT_YES,
-    name = "DefaultPreviewDark"
-)
-@Preview(showBackground = true, widthDp = 320)
+@Preview
 @Composable
-fun DefaultPreview() {
+fun PreviewConversation() {
     BasicsCodelabTheme {
-        Greetings()
+        Conversation(messages = SampleData.conversationSample)
     }
 }
 
-@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Preview(name = "Light Mode")
+@Preview(
+    name = "Dark Mode",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
+)
 @Composable
-fun OnboardingPreview() {
+fun PreviewMessageCard() {
     BasicsCodelabTheme {
-        OnboardingScreen(onContinueClicked = {})
+        MessageCard(msg = Message(
+            author = "Colleague",
+            body = "Hey, take a look at Jetpack Compose, it's great!"
+        ))
     }
 }
