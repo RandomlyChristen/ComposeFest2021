@@ -39,13 +39,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -59,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.codelabs.state.ui.StateCodelabTheme
 
 /**
  * Draws a row of [TodoIcon] with visibility changes animated.
@@ -239,16 +234,32 @@ fun TodoEditButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    TextButton(
+//    TextButton(
+//        onClick = onClick,
+//        shape = CircleShape,
+//        enabled = enabled,
+//        modifier = modifier
+//    ) {
+//        Text(text)
+//    }
+    Button(
         onClick = onClick,
         shape = CircleShape,
         enabled = enabled,
         modifier = modifier
     ) {
-        Text(text)
+        Text(text = text)
     }
 }
 
 @Preview
 @Composable
 fun PreviewIconRow() = IconRow(icon = TodoIcon.Square, onIconChange = {})
+
+@Preview
+@Composable
+fun PreviewEditButton() {
+    StateCodelabTheme {
+        TodoEditButton(onClick = { /*TODO*/ }, text = "Add")
+    }
+}
