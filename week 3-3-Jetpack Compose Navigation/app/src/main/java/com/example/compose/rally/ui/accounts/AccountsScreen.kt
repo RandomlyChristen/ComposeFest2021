@@ -22,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.rally.R
 import com.example.compose.rally.data.Account
+import com.example.compose.rally.data.UserData
 import com.example.compose.rally.ui.components.AccountRow
 import com.example.compose.rally.ui.components.StatementBody
+import com.example.compose.rally.ui.theme.RallyTheme
 
 /**
  * The Accounts screen.
@@ -74,5 +77,13 @@ fun SingleAccountBody(account: Account) {
             amount = row.balance,
             color = row.color
         )
+    }
+}
+
+@Preview
+@Composable
+private fun SingleAccountBodyPreview() {
+    RallyTheme {
+        SingleAccountBody(account = UserData.accounts[0])
     }
 }
